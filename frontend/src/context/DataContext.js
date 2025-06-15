@@ -104,7 +104,9 @@ export const DataProvider = ({ children }) => {
         let historicalResponse;
         try {
           // Try to fetch from live API through proxy server first
-          historicalResponse = await fetch("http://localhost:3001/api/alerts");
+          const API_BASE_URL =
+            process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
+          historicalResponse = await fetch(`${API_BASE_URL}/api/alerts`);
           if (!historicalResponse.ok) {
             throw new Error("Proxy server unavailable");
           }
