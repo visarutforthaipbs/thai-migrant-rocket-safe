@@ -1,22 +1,50 @@
 {
-  "short_name": "Iron Dome Alert",
-  "name": "Thai Migrant Worker Safety - Iron Dome Alert System",
-  "description": "Safety monitoring system for Thai migrant workers in Israel with real-time Iron Dome alerts",
+  "short_name": "ไอรอนโดม",
+  "name": "ระบบเตือนภัยไอรอนโดม - คู่มือความปลอดภัยสำหรับคนงานไทยในอิสราเอล",
+  "description": "ระบบเตือนภัยไอรอนโดมสำหรับคนงานไทยในอิสราเอล ตรวจสอบความปลอดภัยตามพิกัดปัจจุบัน รับการแจ้งเตือนภัยแบบเรียลไทม์",
   "icons": [
+    {
+      "src": "/image/thumnail.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/image/thumnail.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
     {
       "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiMxZTQwYWYiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyTDEzLjA5IDguMjZMMjAgOUwxMy4wOSAxNS43NEwxMiAyMkwxMC45MSAxNS43NEw0IDlMMTAuOTEgOC4yNkwxMiAyWiIvPgo8L3N2Zz4KPC9zdmc+",
       "sizes": "192x192",
       "type": "image/svg+xml"
-    },
-    {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9IiMxZTQwYWYiLz4KPHN2ZyB4PSIxMjgiIHk9IjEyOCIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPgo8cGF0aCBkPSJNMTIgMkwxMy4wOSA4LjI2TDIwIDlMMTMuMDkgMTUuNzRMMTIgMjJMMTAuOTEgMTUuNzRMNCA5TDEwLjkxIDguMjZMMTIgMloiLz4KPC9zdmc+Cjwvc3ZnPg==",
-      "sizes": "512x512",
-      "type": "image/svg+xml"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay"],
+  "orientation": "portrait-primary",
   "theme_color": "#1e40af",
   "background_color": "#ffffff",
-  "lang": "th"
+  "lang": "th",
+  "dir": "ltr",
+  "categories": ["safety", "utilities", "news"],
+  "screenshots": [
+    {
+      "src": "/image/thumnail.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "Screenshot of the Iron Dome Alert System main interface"
+    },
+    {
+      "src": "/image/thumnail.jpg",
+      "sizes": "750x1334",
+      "type": "image/jpeg",
+      "platform": "narrow",
+      "label": "Mobile screenshot of the Iron Dome Alert System"
+    }
+  ]
 }

@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Allow all search engines to crawl the site
+Allow: /static/
+Allow: /image/
+Allow: /data/
+
+# Disallow crawling of API endpoints for privacy
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://thai-migrant-rocket-safe-frontend-4.vercel.app/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1 

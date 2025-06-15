@@ -1,23 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 
 <head>
+    <!-- Basic Meta Tags -->
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Israeli City Alert Zones Map" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+    <!-- Primary Meta Tags -->
+    <title>ระบบเตือนภัยไอรอนโดม - คู่มือความปลอดภัยสำหรับคนงานไทยในอิสราเอล</title>
+    <meta name="title" content="ระบบเตือนภัยไอรอนโดม - คู่มือความปลอดภัยสำหรับคนงานไทยในอิสราเอล" />
+    <meta name="description"
+        content="ระบบเตือนภัยไอรอนโดมสำหรับคนงานไทยในอิสราเอล ตรวจสอบความปลอดภัยตามพิกัดปัจจุบัน รับการแจ้งเตือนภัยแบบเรียลไทม์ พร้อมข้อมูลติดต่อเหตุฉุกเฉิน เพื่อความปลอดภัยของคนไทยในอิสราเอล" />
+    <meta name="keywords"
+        content="ไอรอนโดม, Iron Dome, อิสราเอล, คนงานไทย, Thai workers, Israel, ความปลอดภัย, Safety, เตือนภัย, Alert, ฉุกเฉิน, Emergency" />
+    <meta name="author" content="Thai Migrant Worker Safety System" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="Thai" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ระบบเตือนภัยไอรอนโดม" />
+    <meta property="og:url" content="https://thai-migrant-rocket-safe-frontend-4.vercel.app/" />
+    <meta property="og:title" content="ระบบเตือนภัยไอรอนโดม - คู่มือความปลอดภัยสำหรับคนงานไทยในอิสราเอล" />
+    <meta property="og:description"
+        content="ระบบเตือนภัยไอรอนโดมสำหรับคนงานไทยในอิสราเอล ตรวจสอบความปลอดภัยตามพิกัดปัจจุบัน รับการแจ้งเตือนภัยแบบเรียลไทม์ พร้อมข้อมูลติดต่อเหตุฉุกเฉิน" />
+    <meta property="og:image" content="https://thai-migrant-rocket-safe-frontend-4.vercel.app/image/thumnail.jpg" />
+    <meta property="og:image:secure_url"
+        content="https://thai-migrant-rocket-safe-frontend-4.vercel.app/image/thumnail.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ระบบเตือนภัยไอรอนโดมสำหรับคนงานไทยในอิสราเอล" />
+    <meta property="og:locale" content="th_TH" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@ThaiWorkerSafety" />
+    <meta name="twitter:creator" content="@ThaiWorkerSafety" />
+    <meta name="twitter:url" content="https://thai-migrant-rocket-safe-frontend-4.vercel.app/" />
+    <meta name="twitter:title" content="ระบบเตือนภัยไอรอนโดม - คู่มือความปลอดภัยสำหรับคนงานไทยในอิสราเอล" />
+    <meta name="twitter:description"
+        content="ระบบเตือนภัยไอรอนโดมสำหรับคนงานไทยในอิสราเอล ตรวจสอบความปลอดภัยตามพิกัดปัจจุบัน รับการแจ้งเตือนภัยแบบเรียลไทม์" />
+    <meta name="twitter:image" content="https://thai-migrant-rocket-safe-frontend-4.vercel.app/image/thumnail.jpg" />
+    <meta name="twitter:image:alt" content="ระบบเตือนภัยไอรอนโดมสำหรับคนงานไทยในอิสราเอล" />
+
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ไอรอนโดม" />
+    <meta name="msapplication-TileColor" content="#1e40af" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://thai-migrant-rocket-safe-frontend-4.vercel.app/" />
+
+    <!-- Favicons and Icons -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/image/thumnail.jpg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon-16x16.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
-    <title>ระบบเตือนภัยไอรอนโดม - คู่มือความปลอดภัยสำหรับคนงานไทย</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://thai-migrant-rocket-safe-production.up.railway.app" />
+
+    <!-- Schema.org structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "ระบบเตือนภัยไอรอนโดม",
+        "alternateName": "Iron Dome Alert System",
+        "description": "ระบบเตือนภัยไอรอนโดมสำหรับคนงานไทยในอิสราเอล ตรวจสอบความปลอดภัยตามพิกัดปัจจุบัน",
+        "url": "https://thai-migrant-rocket-safe-frontend-4.vercel.app/",
+        "applicationCategory": "Safety",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "creator": {
+            "@type": "Organization",
+            "name": "Thai Migrant Worker Safety Initiative"
+        },
+        "audience": {
+            "@type": "Audience",
+            "audienceType": "Thai migrant workers in Israel"
+        },
+        "inLanguage": ["th", "en"],
+        "isAccessibleForFree": true,
+        "image": "https://thai-migrant-rocket-safe-frontend-4.vercel.app/image/thumnail.jpg"
+    }
+    </script>
 </head>
 
 <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+        <div style="padding: 20px; text-align: center; font-family: 'Noto Sans Thai', sans-serif;">
+            <h1>🛡️ ระบบเตือนภัยไอรอนโดม</h1>
+            <p>คุณต้องเปิดใช้งาน JavaScript เพื่อใช้แอปพลิเคชันนี้</p>
+            <p>You need to enable JavaScript to run this app.</p>
+            <p><strong>เหตุฉุกเฉิน: 101</strong></p>
+            <p><strong>สถานกงสุลไทย: 054-636-8150</strong></p>
+        </div>
+    </noscript>
     <div id="root"></div>
 </body>
 
