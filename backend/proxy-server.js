@@ -7,9 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // MongoDB connection
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://sankhamphotography:dVRUHUlvsf0g7C1S@rocket-migrant-safe.7ouw6za.mongodb.net/?retryWrites=true&w=majority&appName=rocket-migrant-safe";
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error("❌ MONGODB_URI environment variable is required");
+  process.exit(1);
+}
 let cachedClient = null;
 
 async function connectToDatabase() {
@@ -25,7 +28,11 @@ async function connectToDatabase() {
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  origin: [
+    process.env.CORS_ORIGIN || "http://localhost:3000",
+    "https://thai-migrant-rocket-safe-frontend-4.vercel.app",
+    /\.vercel\.app$/,
+  ],
   credentials: true,
   optionsSuccessStatus: 200,
 };
