@@ -138,10 +138,22 @@ export const DataProvider = ({ children }) => {
 
         const [citiesData, polygonsData, historicalData, thaiWorkerGeoJSON] =
           await Promise.all([
-            citiesResponse.json(),
-            polygonsResponse.json(),
-            historicalResponse.json(),
-            thaiWorkerResponse.json(),
+            citiesResponse.json().catch((err) => {
+              console.error("Error parsing cities.json:", err);
+              throw new Error("Invalid cities.json format");
+            }),
+            polygonsResponse.json().catch((err) => {
+              console.error("Error parsing polygons.json:", err);
+              throw new Error("Invalid polygons.json format");
+            }),
+            historicalResponse.json().catch((err) => {
+              console.error("Error parsing historical data:", err);
+              throw new Error("Invalid historical data format");
+            }),
+            thaiWorkerResponse.json().catch((err) => {
+              console.error("Error parsing thaiworker-where.geojson:", err);
+              throw new Error("Invalid thaiworker-where.geojson format");
+            }),
           ]);
 
         setCities(citiesData.cities || citiesData);
