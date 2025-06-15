@@ -1,0 +1,23 @@
+@font-face {
+  font-family: "DB HelvethaicaX";
+  src: url("../public/font/dbhelvethaicax-webfont.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DB HelvethaicaX";
+  src: url("../public/font/dbhelvethaicaxmed-webfont.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DB HelvethaicaX";
+  src: url("../public/font/dbhelvethaicaxbd-webfont.woff2") format("woff2");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
