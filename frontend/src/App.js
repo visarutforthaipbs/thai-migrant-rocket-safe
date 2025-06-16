@@ -12,6 +12,7 @@ const AppContent = () => {
   const [selectedArea, setSelectedArea] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mapFocusTarget, setMapFocusTarget] = useState(null);
   const { timeFilter } = useLists();
 
   // Check if device is mobile/tablet
@@ -34,6 +35,26 @@ const AppContent = () => {
     if (isMobile) {
       setSidebarOpen(true);
     }
+
+    // Focus map on the clicked polygon
+    setMapFocusTarget({
+      type: "polygon",
+      data: areaData,
+    });
+
+    // Clear focus target after animation
+    setTimeout(() => setMapFocusTarget(null), 2000);
+  };
+
+  const handleLocationFound = (latitude, longitude) => {
+    // Focus map on user location
+    setMapFocusTarget({
+      type: "location",
+      data: { latitude, longitude },
+    });
+
+    // Clear focus target after animation
+    setTimeout(() => setMapFocusTarget(null), 6000); // Longer for location marker
   };
 
   const handleCloseSidebar = () => {
@@ -68,6 +89,7 @@ const AppContent = () => {
             onPolygonClick={handlePolygonClick}
             language={language}
             isMobile={isMobile}
+            focusTarget={mapFocusTarget}
           />
         </div>
 
@@ -83,7 +105,11 @@ const AppContent = () => {
       </div>
 
       {/* Location Safety Check Button */}
-      <LocationSafetyCheck language={language} isMobile={isMobile} />
+      <LocationSafetyCheck
+        language={language}
+        isMobile={isMobile}
+        onLocationFound={handleLocationFound}
+      />
     </div>
   );
 };

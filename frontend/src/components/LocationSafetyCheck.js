@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useLists } from "../context/DataContext";
 
-const LocationSafetyCheck = ({ language, isMobile }) => {
+const LocationSafetyCheck = ({ language, isMobile, onLocationFound }) => {
   const [isChecking, setIsChecking] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [safetyResult, setSafetyResult] = useState(null);
@@ -212,6 +212,11 @@ const LocationSafetyCheck = ({ language, isMobile }) => {
         setSafetyResult(safety);
         setShowResult(true);
         setIsChecking(false);
+
+        // Focus map on user location
+        if (onLocationFound) {
+          onLocationFound(latitude, longitude);
+        }
 
         // Log the location data to MongoDB
         try {

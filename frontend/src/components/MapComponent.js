@@ -43,6 +43,63 @@ const FitBounds = ({ polygons }) => {
   return null;
 };
 
+// Component to handle map focusing from external triggers
+const MapFocusController = ({ focusTarget, polygons, cities }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!focusTarget) return;
+
+    const { type, data } = focusTarget;
+
+    if (type === "location" && data.latitude && data.longitude) {
+      // Focus on user location
+      const userLocation = [data.latitude, data.longitude];
+      map.setView(userLocation, 12, { animate: true, duration: 1.5 });
+
+      // Add a temporary marker for user location
+      const userMarker = L.marker(userLocation, {
+        icon: L.divIcon({
+          className: "user-location-marker",
+          html: '<div style="background: #dc2626; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
+        }),
+      }).addTo(map);
+
+      // Remove marker after 5 seconds
+      setTimeout(() => {
+        map.removeLayer(userMarker);
+      }, 5000);
+    } else if (type === "polygon" && data.id) {
+      // Focus on clicked polygon
+      const polygonCoords = polygons[data.id];
+      if (polygonCoords && polygonCoords.length > 0) {
+        // Convert coordinates to Leaflet format [lat, lng]
+        const leafletCoords = polygonCoords.map((coord) => [
+          coord[0],
+          coord[1],
+        ]);
+
+        // Create bounds for the polygon
+        const bounds = leafletCoords.reduce((bounds, coord) => {
+          return bounds.extend(coord);
+        }, L.latLngBounds(leafletCoords[0], leafletCoords[0]));
+
+        // Fit the map to the polygon with some padding
+        map.fitBounds(bounds, {
+          padding: [30, 30],
+          animate: true,
+          duration: 1.5,
+          maxZoom: 11, // Don't zoom in too much for large polygons
+        });
+      }
+    }
+  }, [focusTarget, map, polygons, cities]);
+
+  return null;
+};
+
 // Component to render country boundary
 const CountryBoundary = ({ isVisible }) => {
   const [countryData, setCountryData] = useState(null);
@@ -184,11 +241,12 @@ const CityPolygons = ({ onPolygonClick, language, isVisible }) => {
   return <>{renderPolygons()}</>;
 };
 
-const MapComponent = ({ onPolygonClick, language, isMobile }) => {
+const MapComponent = ({ onPolygonClick, language, isMobile, focusTarget }) => {
   const {
     loading,
     error,
     polygons,
+    cities,
     timeFilter,
     updateTimeFilter,
     thaiWorkerData,
@@ -264,6 +322,13 @@ const MapComponent = ({ onPolygonClick, language, isMobile }) => {
 
         {/* Auto-fit bounds */}
         <FitBounds polygons={polygons} />
+
+        {/* Map Focus Controller */}
+        <MapFocusController
+          focusTarget={focusTarget}
+          polygons={polygons}
+          cities={cities}
+        />
       </MapContainer>
 
       {/* Time Filter */}
