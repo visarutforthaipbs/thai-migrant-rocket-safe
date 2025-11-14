@@ -1,111 +1,73 @@
+:root {
+  --navbar-height: 64px;
+}
+
 .App {
-  text-align: center;
-  height: 100vh;
-  width: 100vw;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
-  font-family: "DB HelvethaicaX", "Noto Sans Thai", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
-    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  min-height: 100vh;
 }
 
-/* Map container adjustments */
+/* Map styling */
+.map-wrap {
+  position: relative;
+  height: calc(100vh - var(--navbar-height));
+}
 .leaflet-container {
-  height: calc(100vh - 70px) !important; /* Account for navbar only */
-  width: 100% !important;
+  height: 100%;
+  width: 100%;
 }
 
-/* Popup styles */
+/* Popups and text */
 .leaflet-popup-content h3 {
   margin-top: 0;
-  color: #333;
+  color: #111827;
 }
-
 .leaflet-popup-content p {
-  margin: 5px 0;
+  margin: 6px 0;
+  color: #374151;
 }
-
 .leaflet-popup-content h4 {
-  margin: 10px 0 5px 0;
-  color: #666;
+  margin: 8px 0 4px;
+  color: #4b5563;
 }
-
 .leaflet-popup-content ul {
-  font-size: 12px;
-  color: #777;
+  font-size: 13px;
+  color: #4b5563;
 }
 
-/* Thai font support */
 .thai-text {
   font-family: "DB HelvethaicaX", "Noto Sans Thai", "Noto Sans", -apple-system,
     BlinkMacSystemFont, sans-serif;
   line-height: 1.6;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .App {
-    flex-direction: column;
-  }
-
-  .leaflet-container {
-    height: calc(100vh - 70px) !important;
-  }
-
-  /* Hide desktop controls on mobile when sidebar is open */
-  .mobile-sidebar-open .leaflet-control-container {
-    display: none;
-  }
-
-  /* Adjust map controls for mobile */
-  .leaflet-control-zoom {
-    margin-left: 5px !important;
-    margin-top: 5px !important;
-  }
-
-  .leaflet-control-attribution {
-    font-size: 10px !important;
-    padding: 2px 4px !important;
-  }
-}
-
-/* Tablet adjustments */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .leaflet-container {
-    height: calc(100vh - 70px) !important;
-  }
-}
-
-/* Touch device improvements */
+/* Touch and accessibility */
 @media (hover: none) and (pointer: coarse) {
-  /* Increase touch targets */
   button {
     min-height: 44px;
     min-width: 44px;
   }
-
-  /* Improve scrolling on touch devices */
   .sidebar-content {
     -webkit-overflow-scrolling: touch;
   }
 }
 
-/* Scrollbar styling for sidebar */
+/* Small scrollbar for desktop side panels */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  background: rgba(2, 6, 23, 0.12);
+  border-radius: 6px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+/* Desktop tweaks */
+@media (min-width: 769px) {
+  .map-wrap {
+    height: calc(100vh - var(--navbar-height));
+  }
 }

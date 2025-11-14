@@ -1,18 +1,13 @@
 import React, { useEffect, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Polygon,
-  Popup,
-  useMap,
-  GeoJSON,
-} from "react-leaflet";
+import { MapContainer, Polygon, useMap, GeoJSON } from "react-leaflet";
 import L from "leaflet";
 import { useLists } from "../context/DataContext";
 import Legend from "./Legend";
 import TimeFilter from "./TimeFilter";
 import ThaiWorkerLayer from "./ThaiWorkerLayer";
 import LayerSelector from "./LayerSelector";
+import BaseMapSelector from "./BaseMapSelector";
+import DynamicTileLayer from "./DynamicTileLayer";
 import "leaflet/dist/leaflet.css";
 
 // Component to auto-fit bounds to all polygons
@@ -252,6 +247,7 @@ const MapComponent = ({ onPolygonClick, language, isMobile, focusTarget }) => {
     thaiWorkerData,
     layerVisibility,
     toggleLayerVisibility,
+    baseMap,
   } = useLists();
 
   if (loading) {
@@ -263,7 +259,7 @@ const MapComponent = ({ onPolygonClick, language, isMobile, focusTarget }) => {
           alignItems: "center",
           height: "100vh",
           fontSize: "18px",
-          fontFamily: "Kanit",
+          fontFamily: "DB HelvethaicaX, sans-serif",
         }}
       >
         กำลังโหลดข้อมูล...
@@ -295,11 +291,8 @@ const MapComponent = ({ onPolygonClick, language, isMobile, focusTarget }) => {
         zoom={8}
         style={{ height: "100%", width: "100%" }}
       >
-        {/* Google Maps Tile Layer */}
-        <TileLayer
-          url="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}"
-          attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-        />
+        {/* Dynamic Tile Layer */}
+        <DynamicTileLayer baseMap={baseMap} />
 
         {/* Country Boundary */}
         <CountryBoundary isVisible={layerVisibility.countryBoundary} />
@@ -339,6 +332,9 @@ const MapComponent = ({ onPolygonClick, language, isMobile, focusTarget }) => {
         isMobile={isMobile}
       />
 
+      {/* Base Map Selector */}
+      <BaseMapSelector language={language} isMobile={isMobile} />
+
       {/* Layer Selector */}
       <LayerSelector
         layerVisibility={layerVisibility}
@@ -358,4 +354,4 @@ const MapComponent = ({ onPolygonClick, language, isMobile, focusTarget }) => {
   );
 };
 
-export default MapComponent;
+export default React.memo(MapComponent);

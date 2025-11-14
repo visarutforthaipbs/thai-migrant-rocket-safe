@@ -4,6 +4,8 @@
 export const API_ENDPOINTS = {
   ALERTS: "/api/alerts",
   LOG_LOCATION: "/api/log-location",
+  LOG_SEARCH: "/api/log-search",
+  SEARCH_ANALYTICS: "/api/analytics/searches",
   HEALTH: "/health",
 };
 
@@ -39,5 +41,6 @@ export const LANGUAGES = {
 // MongoDB collection names
 export const COLLECTIONS = {
   LOCATION_LOGS: "location-logs",
+  SEARCH_LOGS: "search-logs",
   ALERT_HISTORY: "alert-history",
 };

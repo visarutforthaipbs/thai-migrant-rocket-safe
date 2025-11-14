@@ -6,6 +6,26 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Israel geographic boundaries
+const ISRAEL_BOUNDS = {
+  north: 33.4, // Northern border (Lebanon)
+  south: 29.4, // Southern border (Egypt/Red Sea)
+  east: 35.9, // Eastern border (Jordan River/Dead Sea)
+  west: 34.2, // Western border (Mediterranean Sea)
+};
+
+// Function to check if coordinates are within Israel
+function isWithinIsrael(latitude, longitude) {
+  if (!latitude || !longitude) return false;
+
+  return (
+    latitude >= ISRAEL_BOUNDS.south &&
+    latitude <= ISRAEL_BOUNDS.north &&
+    longitude >= ISRAEL_BOUNDS.west &&
+    longitude <= ISRAEL_BOUNDS.east
+  );
+}
+
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -13,17 +33,55 @@ if (!MONGODB_URI) {
   console.error("❌ MONGODB_URI environment variable is required");
   process.exit(1);
 }
+
 let cachedClient = null;
+let isConnecting = false;
 
 async function connectToDatabase() {
   if (cachedClient) {
-    return cachedClient;
+    try {
+      // Test the connection
+      await cachedClient.db().admin().ping();
+      return cachedClient;
+    } catch (error) {
+      console.log("🔄 Cached connection failed, reconnecting...");
+      cachedClient = null;
+    }
   }
 
-  const client = new MongoClient(MONGODB_URI);
-  await client.connect();
-  cachedClient = client;
-  return client;
+  if (isConnecting) {
+    // Wait for existing connection attempt
+    let attempts = 0;
+    while (isConnecting && attempts < 50) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      attempts++;
+    }
+    if (cachedClient) return cachedClient;
+  }
+
+  try {
+    isConnecting = true;
+    console.log("🔗 Connecting to MongoDB...");
+
+    const client = new MongoClient(MONGODB_URI, {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 30000,
+      connectTimeoutMS: 30000,
+    });
+
+    await client.connect();
+    await client.db().admin().ping();
+
+    cachedClient = client;
+    console.log("✅ Connected to MongoDB successfully");
+    return client;
+  } catch (error) {
+    console.error("❌ MongoDB connection failed:", error.message);
+    throw error;
+  } finally {
+    isConnecting = false;
+  }
 }
 
 // CORS configuration
@@ -164,14 +222,455 @@ app.post("/api/log-location", async (req, res) => {
   }
 });
 
+// Search query logging endpoint
+app.post("/api/log-search", async (req, res) => {
+  try {
+    const { searchQuery, resultsCount, selectedLocation, language } = req.body;
+
+    if (!searchQuery) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+
+    const client = await connectToDatabase();
+    const db = client.db("rocket-migrant-safe");
+    const collection = db.collection("search-logs");
+
+    // Create the search log entry
+    const logEntry = {
+      searchQuery: searchQuery.trim(),
+      searchQueryLower: searchQuery.trim().toLowerCase(),
+      resultsCount: resultsCount || 0,
+      selectedLocation: selectedLocation
+        ? {
+            name: selectedLocation.name || selectedLocation.en,
+            nameEn: selectedLocation.en,
+            nameHe: selectedLocation.he,
+            latitude: selectedLocation.lat,
+            longitude: selectedLocation.lng,
+          }
+        : null,
+      language: language || "th",
+      userAgent: req.headers["user-agent"] || "unknown",
+      ip:
+        req.headers["x-forwarded-for"] ||
+        req.connection.remoteAddress ||
+        "unknown",
+      timestamp: new Date(),
+      createdAt: new Date(),
+    };
+
+    // Insert the log entry
+    const result = await collection.insertOne(logEntry);
+
+    // Create indexes for efficient querying
+    try {
+      await collection.createIndex({ searchQueryLower: 1 });
+      await collection.createIndex({ createdAt: -1 });
+      await collection.createIndex({ "selectedLocation.name": 1 });
+    } catch (indexError) {
+      console.log(
+        "Indexes already exist or failed to create:",
+        indexError.message
+      );
+    }
+
+    console.log("🔍 Search logged successfully:", {
+      id: result.insertedId,
+      query: searchQuery,
+      results: resultsCount,
+      timestamp: new Date().toISOString(),
+    });
+
+    res.status(200).json({
+      success: true,
+      id: result.insertedId,
+      message: "Search logged successfully",
+    });
+  } catch (error) {
+    console.error("❌ Error logging search:", error);
+    res.status(500).json({
+      error: "Failed to log search",
+      details: error.message,
+    });
+  }
+});
+
+// Search analytics endpoint
+app.get("/api/analytics/searches", async (req, res) => {
+  try {
+    const client = await connectToDatabase();
+    const db = client.db("rocket-migrant-safe");
+    const collection = db.collection("search-logs");
+
+    const days = parseInt(req.query.days) || 30;
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    // Get analytics
+    const analytics = await Promise.all([
+      // Total searches
+      collection.countDocuments({ createdAt: { $gte: since } }),
+
+      // Most searched queries
+      collection
+        .aggregate([
+          { $match: { createdAt: { $gte: since } } },
+          {
+            $group: {
+              _id: "$searchQueryLower",
+              count: { $sum: 1 },
+              originalQuery: { $first: "$searchQuery" },
+            },
+          },
+          { $sort: { count: -1 } },
+          { $limit: 20 },
+        ])
+        .toArray(),
+
+      // Most selected locations
+      collection
+        .aggregate([
+          {
+            $match: {
+              createdAt: { $gte: since },
+              "selectedLocation.name": { $exists: true },
+            },
+          },
+          {
+            $group: {
+              _id: "$selectedLocation.nameEn",
+              count: { $sum: 1 },
+              nameHe: { $first: "$selectedLocation.nameHe" },
+              latitude: { $first: "$selectedLocation.latitude" },
+              longitude: { $first: "$selectedLocation.longitude" },
+            },
+          },
+          { $sort: { count: -1 } },
+          { $limit: 20 },
+        ])
+        .toArray(),
+
+      // Language distribution
+      collection
+        .aggregate([
+          { $match: { createdAt: { $gte: since } } },
+          {
+            $group: {
+              _id: "$language",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+
+      // Searches with no results
+      collection.countDocuments({
+        createdAt: { $gte: since },
+        resultsCount: 0,
+      }),
+
+      // Daily search activity
+      collection
+        .aggregate([
+          { $match: { createdAt: { $gte: since } } },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray(),
+    ]);
+
+    const [
+      totalSearches,
+      topQueries,
+      topLocations,
+      languageDistribution,
+      noResultsCount,
+      dailyActivity,
+    ] = analytics;
+
+    res.json({
+      period: `${days} days`,
+      since: since.toISOString(),
+      summary: {
+        totalSearches,
+        noResultsCount,
+        noResultsPercentage:
+          totalSearches > 0
+            ? Math.round((noResultsCount / totalSearches) * 100)
+            : 0,
+        uniqueQueries: topQueries.length,
+      },
+      topQueries: topQueries.map((q) => ({
+        query: q.originalQuery,
+        count: q.count,
+      })),
+      topLocations: topLocations.map((loc) => ({
+        name: loc._id,
+        nameHe: loc.nameHe,
+        count: loc.count,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      })),
+      languageDistribution,
+      dailyActivity,
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("❌ Error fetching search analytics:", error);
+    res.status(500).json({
+      error: "Failed to fetch search analytics",
+      message: error.message,
+    });
+  }
+});
+
+// Dashboard analytics endpoint
+app.get("/api/dashboard/analytics", async (req, res) => {
+  try {
+    const client = await connectToDatabase();
+    const db = client.db("rocket-migrant-safe");
+    const collection = db.collection("location-logs");
+
+    // Get time range from query params (default to last 30 days)
+    const days = parseInt(req.query.days) || 30;
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    // Israel geographic filter
+    const israelFilter = {
+      createdAt: { $gte: since },
+      latitude: { $gte: ISRAEL_BOUNDS.south, $lte: ISRAEL_BOUNDS.north },
+      longitude: { $gte: ISRAEL_BOUNDS.west, $lte: ISRAEL_BOUNDS.east },
+    };
+
+    // Aggregate analytics (Israel locations only)
+    const analytics = await Promise.all([
+      // Total location checks in Israel
+      collection.countDocuments(israelFilter),
+
+      // Risk level distribution in Israel
+      collection
+        .aggregate([
+          { $match: israelFilter },
+          {
+            $group: {
+              _id: "$safetyResult.riskLevel",
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { count: -1 } },
+        ])
+        .toArray(),
+
+      // Safety status distribution in Israel
+      collection
+        .aggregate([
+          { $match: israelFilter },
+          {
+            $group: {
+              _id: "$safetyResult.status",
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { count: -1 } },
+        ])
+        .toArray(),
+
+      // Daily activity in Israel (last 7 days)
+      collection
+        .aggregate([
+          {
+            $match: {
+              createdAt: {
+                $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+              },
+              latitude: {
+                $gte: ISRAEL_BOUNDS.south,
+                $lte: ISRAEL_BOUNDS.north,
+              },
+              longitude: { $gte: ISRAEL_BOUNDS.west, $lte: ISRAEL_BOUNDS.east },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray(),
+
+      // High-risk locations in Israel (recent alerts > 0)
+      collection
+        .aggregate([
+          {
+            $match: {
+              ...israelFilter,
+              "safetyResult.recentAlerts": { $gt: 0 },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                lat: { $round: ["$latitude", 3] },
+                lng: { $round: ["$longitude", 3] },
+              },
+              count: { $sum: 1 },
+              avgRecentAlerts: { $avg: "$safetyResult.recentAlerts" },
+              maxRecentAlerts: { $max: "$safetyResult.recentAlerts" },
+            },
+          },
+          { $sort: { maxRecentAlerts: -1, count: -1 } },
+          { $limit: 10 },
+        ])
+        .toArray(),
+    ]);
+
+    const [
+      totalChecks,
+      riskLevels,
+      safetyStatus,
+      dailyActivity,
+      highRiskLocations,
+    ] = analytics;
+
+    // Calculate risk statistics
+    const riskStats = {
+      safe: riskLevels.find((r) => r._id === "safe")?.count || 0,
+      lowRisk: riskLevels.find((r) => r._id === "low")?.count || 0,
+      moderateRisk: riskLevels.find((r) => r._id === "moderate")?.count || 0,
+      highRisk: riskLevels.find((r) => r._id === "high")?.count || 0,
+      veryHighRisk: riskLevels.find((r) => r._id === "very-high")?.count || 0,
+    };
+
+    const riskTotal = Object.values(riskStats).reduce((a, b) => a + b, 0);
+    const atRiskCount =
+      riskStats.moderateRisk + riskStats.highRisk + riskStats.veryHighRisk;
+
+    res.json({
+      period: `${days} days`,
+      since: since.toISOString(),
+      summary: {
+        totalChecks,
+        atRiskCount,
+        atRiskPercentage:
+          riskTotal > 0 ? Math.round((atRiskCount / riskTotal) * 100) : 0,
+        safeCount: riskStats.safe + riskStats.lowRisk,
+        safePercentage:
+          riskTotal > 0
+            ? Math.round(
+                ((riskStats.safe + riskStats.lowRisk) / riskTotal) * 100
+              )
+            : 0,
+      },
+      riskDistribution: riskStats,
+      safetyStatus,
+      dailyActivity,
+      highRiskLocations: highRiskLocations.map((loc) => ({
+        latitude: loc._id.lat,
+        longitude: loc._id.lng,
+        checksCount: loc.count,
+        avgRecentAlerts: Math.round(loc.avgRecentAlerts * 10) / 10,
+        maxRecentAlerts: loc.maxRecentAlerts,
+      })),
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("❌ Error fetching dashboard analytics:", error);
+    res.status(500).json({
+      error: "Failed to fetch analytics",
+      message: error.message,
+    });
+  }
+});
+
+// Recent location checks endpoint
+app.get("/api/dashboard/recent-checks", async (req, res) => {
+  try {
+    const client = await connectToDatabase();
+    const db = client.db("rocket-migrant-safe");
+    const collection = db.collection("location-logs");
+
+    const limit = parseInt(req.query.limit) || 50;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+
+    // Filter for Israel locations only
+    const israelFilter = {
+      latitude: { $gte: ISRAEL_BOUNDS.south, $lte: ISRAEL_BOUNDS.north },
+      longitude: { $gte: ISRAEL_BOUNDS.west, $lte: ISRAEL_BOUNDS.east },
+    };
+
+    const recentChecks = await collection
+      .find(israelFilter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .project({
+        latitude: 1,
+        longitude: 1,
+        "safetyResult.status": 1,
+        "safetyResult.riskLevel": 1,
+        "safetyResult.recentAlerts": 1,
+        "safetyResult.historicalAlerts": 1,
+        createdAt: 1,
+        ip: 1,
+      })
+      .toArray();
+
+    const total = await collection.countDocuments(israelFilter);
+
+    res.json({
+      checks: recentChecks,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error fetching recent checks:", error);
+    res.status(500).json({
+      error: "Failed to fetch recent checks",
+      message: error.message,
+    });
+  }
+});
+
 // Health check endpoint
-app.get("/health", (req, res) => {
-  res.json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || "1.0.0",
-    environment: process.env.NODE_ENV || "development",
-  });
+app.get("/health", async (req, res) => {
+  try {
+    // Check MongoDB connection
+    const client = await connectToDatabase();
+    await client.db().admin().ping();
+
+    res.json({
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || "1.0.0",
+      environment: process.env.NODE_ENV || "development",
+      mongodb: "connected",
+    });
+  } catch (error) {
+    console.error("❌ Health check failed:", error);
+    res.status(503).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || "1.0.0",
+      environment: process.env.NODE_ENV || "development",
+      mongodb: "disconnected",
+      error: error.message,
+    });
+  }
 });
 
 // Error handling middleware

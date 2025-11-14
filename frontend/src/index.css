@@ -1,13 +1,194 @@
 @import "./fonts.css";
 
-body {
+/* Mobile-first base */
+:root {
+  --navbar-height: 64px;
+  --accent: #1e40af;
+  --danger: #dc2626;
+  --muted: #6b7280;
+  --bg: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
   margin: 0;
+  padding: 0;
+}
+
+body {
   font-family: "DB HelvethaicaX", "Noto Sans Thai", -apple-system,
     BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
     "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8fafc;
+  background-color: var(--bg);
+  color: #0f172a;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+@media (min-width: 769px) {
+  body {
+    font-size: 16px;
+  }
+}
+
+/* Navigation Button Hover Effect */
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Location Error and Manual Input */
+.location-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.error-content h3 {
+  color: #dc2626;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.location-instructions {
+  margin: 12px 0;
+}
+
+.location-instructions p {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #374151;
+}
+
+.location-instructions ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: #4b5563;
+}
+
+.location-instructions li {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.manual-entry-button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.2s ease;
+}
+
+.manual-entry-button:hover {
+  background: #2563eb;
+}
+
+.manual-location-input {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.manual-location-input h3 {
+  margin: 0 0 8px 0;
+  color: #374151;
+  font-size: 16px;
+}
+
+.coordinate-help {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+.coordinate-inputs {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.input-group {
+  flex: 1;
+}
+
+.input-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.check-manual-button {
+  background: #059669;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.check-manual-button:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.check-manual-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .coordinate-inputs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .location-instructions ul {
+    padding-left: 16px;
+  }
+
+  .manual-location-input {
+    padding: 16px;
+  }
 }
 
 code {
@@ -15,24 +196,714 @@ code {
     monospace;
 }
 
-#root {
-  height: 100vh;
-  width: 100vw;
+/* App layout */
+.App {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
-/* Ensure the map container fits properly */
+/* Navbar */
+nav {
+  height: var(--navbar-height);
+  display: flex;
+  align-items: center;
+}
+
+/* Map container: take remaining space under navbar */
+.map-wrap {
+  flex: 1 1 auto;
+  position: relative;
+  height: calc(100vh - var(--navbar-height));
+}
+
 .leaflet-container {
-  height: 100% !important;
-  width: 100% !important;
+  height: 100%;
+  width: 100%;
 }
 
-/* Override Leaflet default styles for better integration */
-.leaflet-control-container {
+/* Sidebar: bottom sheet on mobile, fixed right panel on desktop */
+.sidebar-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0; /* collapsed by default */
+  background: #fff;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  box-shadow: 0 -8px 24px rgba(2, 6, 23, 0.12);
+  overflow: hidden;
+  transition: height 300ms ease, transform 300ms ease;
+  z-index: 1100;
+}
+
+.sidebar-sheet.open {
+  height: 85vh;
+}
+
+/* Mobile overlay for sidebar */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Desktop fixed sidebar */
+.sidebar-fixed {
+  position: fixed;
+  top: var(--navbar-height);
+  right: 0;
+  width: 340px;
+  height: calc(100vh - var(--navbar-height));
+  background: #fff;
+  border-left: 1px solid #e6eef7;
+  box-shadow: -4px 0 18px rgba(2, 6, 23, 0.06);
+  overflow-y: auto;
+  z-index: 1000;
+  transition: width 300ms ease, transform 300ms ease;
+}
+
+/* Collapsed sidebar state */
+.sidebar-collapsed {
+  position: fixed;
+  top: var(--navbar-height);
+  right: 0;
+  width: 60px;
+  height: calc(100vh - var(--navbar-height));
+  background: #fff;
+  border-left: 1px solid #e6eef7;
+  box-shadow: -4px 0 18px rgba(2, 6, 23, 0.06);
+  overflow: hidden;
+  z-index: 1000;
+  transition: width 300ms ease, transform 300ms ease;
+}
+
+/* Toggle button for sidebar */
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border: 1px solid #e6eef7;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  transition: all 200ms ease;
+}
+
+.sidebar-toggle-btn:hover {
+  background: #f8f9fa;
+  border-color: #d0d7de;
+  color: #333;
+}
+
+.sidebar-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+/* Utility card */
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 1px 4px rgba(2, 6, 23, 0.08);
+  border: 1px solid #eef2f6;
+  transition: box-shadow 200ms ease;
+}
+
+.card:hover {
+  box-shadow: 0 2px 8px rgba(2, 6, 23, 0.12);
+}
+
+@media (min-width: 769px) {
+  .card {
+    border-radius: 10px;
+    padding: 12px;
+  }
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* Navbar components */
+.emergency-pill {
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 600;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+@media (min-width: 769px) {
+  .emergency-pill {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+}
+
+.lang-btn {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 200ms ease;
+  min-height: 32px;
+  min-width: 44px;
+}
+
+.lang-btn.active,
+.lang-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Leaflet control position: keep controls over map on mobile, push left on desktop to avoid sidebar */
+.leaflet-top.leaflet-right {
+  right: 8px;
+}
+
+@media (min-width: 769px) {
+  .sidebar-sheet {
+    display: none;
+  }
+  .sidebar-fixed {
+    display: block;
+  }
+  .leaflet-top.leaflet-right {
+    right: 360px;
+  }
+  .map-wrap {
+    height: calc(100vh - var(--navbar-height));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-sheet,
+  .sidebar-fixed {
+    transition: none;
+  }
+}
+
+/* Base Map Selector */
+.base-map-selector {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  min-width: 120px;
+}
+
+.base-map-selector.mobile {
+  top: 80px; /* Below navbar on mobile */
+  left: 8px;
+  right: 8px;
+  width: auto;
+}
+
+.base-map-selector.desktop {
+  top: 10px;
+  left: 10px;
+  width: auto;
+}
+
+.base-map-header {
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.base-map-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.base-map-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.base-map-selector.mobile .base-map-options {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.base-map-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  color: #374151;
+  min-height: 36px;
+}
+
+.base-map-selector.mobile .base-map-option {
+  flex: 1;
+  justify-content: center;
+  padding: 4px 2px;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 9px;
+  min-width: 0;
+}
+
+.base-map-option:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.base-map-option.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  box-shadow: 0 2px 4px rgba(30, 64, 175, 0.2);
+}
+
+.base-map-option.active:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.map-icon {
+  font-size: 14px;
+}
+
+.base-map-selector.mobile .map-icon {
+  font-size: 16px;
+}
+
+.map-name {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.base-map-selector.mobile .map-name {
+  font-size: 8px;
+  line-height: 1.1;
+  text-align: center;
+}
+
+@media (min-width: 769px) {
+  .base-map-selector.desktop {
+    left: 370px; /* Position after sidebar */
+  }
+}
+
+/* Safety Check Page */
+.safety-check-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.safety-check-container {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.safety-check-header {
+  background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
+  color: white;
+  padding: 24px;
+  text-align: center;
   position: relative;
 }
 
-.leaflet-top.leaflet-right {
-  right: 360px; /* Account for sidebar */
+.back-button {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.back-button:hover {
+  color: white;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  opacity: 0.9;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Main Content */
+.safety-check-main {
+  padding: 32px 24px;
+}
+
+.how-it-works {
+  margin-bottom: 32px;
+}
+
+.how-it-works h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #374151;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step {
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--accent);
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.check-section {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.check-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.check-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.check-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.check-button.checking {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.privacy-note {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+}
+
+.privacy-note p {
+  margin: 0;
+  font-size: 12px;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+/* Results */
+.safety-results {
+  padding: 24px;
+}
+
+.location-info {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.location-info h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #374151;
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item .label {
+  font-weight: 500;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.info-item .value {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+  text-align: right;
+}
+
+.distance {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-left: 4px;
+}
+
+.risk-assessment {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.risk-assessment h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #374151;
+}
+
+.risk-level-badge {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.risk-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.detail-item .label {
+  font-weight: 500;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.detail-item .value {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.recommendation {
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.recommendation h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0c4a6e;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.recommendation p {
+  margin: 0;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.5;
+}
+
+.result-actions {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.secondary-button {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondary-button:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .safety-check-page {
+    padding: 10px;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+
+  .safety-check-container {
+    margin-top: 0;
+  }
+
+  .safety-check-header {
+    padding: 20px 16px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+
+  .safety-check-main {
+    padding: 24px 16px;
+  }
+
+  .safety-results {
+    padding: 16px;
+  }
+
+  .location-info,
+  .risk-assessment {
+    padding: 16px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .info-item .value {
+    text-align: left;
+  }
+
+  .steps {
+    gap: 8px;
+  }
+
+  .step {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .check-button {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+}
+
+/* Navigation Button Hover Effect */
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

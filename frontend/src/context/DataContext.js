@@ -92,6 +92,7 @@ export const DataProvider = ({ children }) => {
     thaiWorkers: false,
     countryBoundary: true,
   });
+  const [baseMap, setBaseMap] = useState("streets"); // 'streets', 'satellite', 'hybrid', 'terrain'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -203,6 +204,11 @@ export const DataProvider = ({ children }) => {
     }));
   };
 
+  // Function to change base map
+  const changeBaseMap = (mapType) => {
+    setBaseMap(mapType);
+  };
+
   const value = {
     cities,
     polygons,
@@ -213,6 +219,8 @@ export const DataProvider = ({ children }) => {
     updateTimeFilter,
     layerVisibility,
     toggleLayerVisibility,
+    baseMap,
+    changeBaseMap,
     loading,
     error,
   };
@@ -232,6 +240,8 @@ export const useLists = () => {
     updateTimeFilter,
     layerVisibility,
     toggleLayerVisibility,
+    baseMap,
+    changeBaseMap,
     loading,
     error,
   } = useData();
@@ -245,6 +255,8 @@ export const useLists = () => {
     updateTimeFilter,
     layerVisibility,
     toggleLayerVisibility,
+    baseMap,
+    changeBaseMap,
     loading,
     error,
   };
